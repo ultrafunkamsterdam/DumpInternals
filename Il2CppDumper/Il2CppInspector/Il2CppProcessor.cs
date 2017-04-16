@@ -104,6 +104,26 @@ namespace Il2CppInspector
             }
         }
 
+        public string GetFullTypeName(GenericIl2CppType pType)
+        {
+            if (pType.type == Il2CppTypeEnum.IL2CPP_TYPE_CLASS || pType.type == Il2CppTypeEnum.IL2CPP_TYPE_VALUETYPE)
+            {
+                var ret = "";
+                Il2CppTypeDefinition klass = Metadata.Types[pType.klassIndex];
+                if (klass.namespaceIndex >= 0)
+                {
+                    ret = Metadata.GetString(klass.namespaceIndex);
+                    if (ret.Length > 0) ret += ".";
+                }
+                ret += Metadata.GetString(klass.nameIndex);
+                return ret;
+            }
+            else
+            {
+                return this.GetTypeName(pType);
+            }
+        }
+
         public string GetTypeName(GenericIl2CppType pType)
         {
             string ret;
