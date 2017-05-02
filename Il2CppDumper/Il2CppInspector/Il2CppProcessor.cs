@@ -29,10 +29,10 @@ namespace Il2CppInspector
 
         public static Il2CppProcessor LoadFromFile(string codeFile, string metadataFile)
         {
-            // Load the metadata file
+            logger.Info("Loading metadata file...");
             var metadata = new Metadata(new MemoryStream(File.ReadAllBytes(metadataFile)));
 
-            // Load the il2cpp code file (try ELF, PE and MachO)
+            logger.Info("Loading binary file...");
             var memoryStream = new MemoryStream(File.ReadAllBytes(codeFile));
 
             IFileFormatReader stream = null;
@@ -101,6 +101,26 @@ namespace Il2CppInspector
                 var realType = Code.Image.ReadMappedObject<Il2CppType>(pointers[0]);
                 realType.Init();
                 return new GenericIl2CppType(realType);
+            }
+        }
+
+        public string GetFullTypeName(GenericIl2CppType pType)
+        {
+            if (pType.type == Il2CppTypeEnum.IL2CPP_TYPE_CLASS || pType.type == Il2CppTypeEnum.IL2CPP_TYPE_VALUETYPE)
+            {
+                var ret = "";
+                Il2CppTypeDefinition klass = Metadata.Types[pType.klassIndex];
+                if (klass.namespaceIndex >= 0)
+                {
+                    ret = Metadata.GetString(klass.namespaceIndex);
+                    if (ret.Length > 0) ret += ".";
+                }
+                ret += Metadata.GetString(klass.nameIndex);
+                return ret;
+            }
+            else
+            {
+                return this.GetTypeName(pType);
             }
         }
 

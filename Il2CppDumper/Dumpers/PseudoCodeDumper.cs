@@ -55,7 +55,7 @@ namespace Il2CppDumper.Dumpers
         {
             writer.Write("\t");
             if ((typeDef.flags & DefineConstants.TYPE_ATTRIBUTE_VISIBILITY_MASK) == DefineConstants.TYPE_ATTRIBUTE_PUBLIC) writer.Write("public ");
-            writer.Write("enum {\n");
+            writer.Write($"enum {metadata.GetTypeName(typeDef)} {{\n");
             var fieldEnd = typeDef.fieldStart + typeDef.field_count;
             for (int i = typeDef.fieldStart + 1; i < fieldEnd; ++i)
             {
@@ -136,7 +136,7 @@ namespace Il2CppDumper.Dumpers
                 if ((pType.attrs & DefineConstants.FIELD_ATTRIBUTE_STATIC) != 0) writer.Write("static ");
                 if ((pType.attrs & DefineConstants.FIELD_ATTRIBUTE_INIT_ONLY) != 0) writer.Write("readonly ");
 
-                writer.Write($"{il2cpp.GetTypeName(pType)} {metadata.GetString(pField.nameIndex)}");
+                writer.Write($"{il2cpp.GetFullTypeName(pType)} {metadata.GetString(pField.nameIndex)}");
                 if (defaultValue != null) writer.Write($" = {defaultValue}");
                 writer.Write(";\n");
             }
@@ -176,13 +176,13 @@ namespace Il2CppDumper.Dumpers
                     writer.Write("static ");
 
                 var methodName = metadata.GetString(methodDef.nameIndex);
-                writer.Write($"{il2cpp.GetTypeName(pReturnType)} {methodName}(");
+                writer.Write($"{il2cpp.GetFullTypeName(pReturnType)} {methodName}(");
                 for (int j = 0; j < methodDef.parameterCount; ++j)
                 {
                     Il2CppParameterDefinition pParam = metadata.parameterDefs[methodDef.parameterStart + j];
                     string szParamName = metadata.GetString(pParam.nameIndex);
                     var pType = il2cpp.Code.GetTypeFromTypeIndex(pParam.typeIndex);
-                    string szTypeName = il2cpp.GetTypeName(pType);
+                    string szTypeName = il2cpp.GetFullTypeName(pType);
                     if ((pType.attrs & DefineConstants.PARAM_ATTRIBUTE_OPTIONAL) != 0)
                         writer.Write("optional ");
                     if ((pType.attrs & DefineConstants.PARAM_ATTRIBUTE_OUT) != 0)
