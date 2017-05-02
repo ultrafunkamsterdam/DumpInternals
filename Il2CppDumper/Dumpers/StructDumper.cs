@@ -169,12 +169,12 @@ namespace Il2CppDumper.Dumpers
                         }
                         else
                         {
-                            typename = this.GetStructType(il2cpp.GetTypeName(pType), fieldname);
+                            typename = this.GetStructType(il2cpp.GetTypeName(pType));
                         }
                     }
                     else
                     {
-                        typename = this.GetStructType(il2cpp.GetTypeName(pType), fieldname);
+                        typename = this.GetStructType(il2cpp.GetTypeName(pType));
                     }
 
                     writer.Write($"\t{typename} {fieldname};\n");
@@ -223,12 +223,16 @@ namespace Il2CppDumper.Dumpers
             }
         }
 
-        internal string GetStructType(string typeName, string fieldName)
+        internal string GetStructType(string typeName)
         {
             string[] types = { "int", "uint", "long", "ulong" };
             if (typeName == "int" || typeName == "long")
             {
                 //
+            }
+            else if (typeName == "byte")
+            {
+                typeName = "uint8_t";
             }
             else if (typeName == "uint" || typeName == "ulong")
             {
@@ -241,7 +245,7 @@ namespace Il2CppDumper.Dumpers
             else if (typeName.StartsWith("FieldCodec`1"))
             {
                 typeName = typeName.Substring("FieldCodec`1".Length + 1, typeName.Length - "FieldCodec`1".Length - 2);
-                var itemType = this.GetStructType(typeName, fieldName);
+                var itemType = this.GetStructType(typeName);
                 itemType = itemType.Replace(" ", "");
                 typeName = "Il2CppArrayOf" + itemType;
                 AddArrayTypeToDump(typeName, itemType);
@@ -249,7 +253,7 @@ namespace Il2CppDumper.Dumpers
             else if (typeName.StartsWith("RepeatedField`1"))
             {
                 typeName = typeName.Substring("RepeatedField`1".Length + 1, typeName.Length - "RepeatedField`1".Length - 2);
-                var itemType = this.GetStructType(typeName, fieldName);
+                var itemType = this.GetStructType(typeName);
                 itemType = itemType.Replace(" ", "");
                 typeName = "RepeatingOf" + itemType;
                 AddRepeatingTypeToDump("RepeatingOf" + itemType, "Il2CppArrayOf" + itemType);
@@ -259,8 +263,8 @@ namespace Il2CppDumper.Dumpers
             {
                 typeName = typeName.Substring(0, typeName.Length - 2);
                 typeName = typeName.Replace(" ", "");
-                typeName = "Il2CppArrayOf" + typeName;
-                AddArrayTypeToDump(typeName, "byte");
+                AddArrayTypeToDump("Il2CppArrayOf" + typeName, this.GetStructType(typeName));
+                typeName = "Il2CppArrayOf" + typeName + "*";
             }
             else
             {
