@@ -191,4 +191,10 @@ namespace Il2CppInspector.Structures
         public int interfaceTypeIndex;
         public int offset;
     }
+
+    public class Il2CppCustomAttributeTypeRange
+    {
+        public int start;
+        public int count;
+    }
 }

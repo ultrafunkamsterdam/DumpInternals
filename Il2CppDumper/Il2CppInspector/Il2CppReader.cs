@@ -24,6 +24,7 @@ namespace Il2CppInspector
 
         public GenericIl2CppType[] Types { get; set; }
         public long[] MethodPointers { get; set; }
+        public long[] CustomAttributes { get; set; }
 
         // Architecture-specific search function
         protected abstract (long, long) Search(long loc, long globalOffset);
@@ -58,6 +59,9 @@ namespace Il2CppInspector
             var methodPointers = Image.ReadMappedArray<uint>(PtrCodeRegistration.pmethodPointers, (int) PtrCodeRegistration.methodPointersCount);
             MethodPointers = methodPointers.Select(p => (long)p).ToArray();
 
+            var customAttributes = Image.ReadMappedArray<uint>(PtrCodeRegistration.customAttributeGenerators, PtrCodeRegistration.customAttributeCount);
+            CustomAttributes = customAttributes.Select(p => (long)p).ToArray();
+            
             //PtrMetadataRegistration.fieldOffsets = Image.ReadMappedArray<int>(PtrMetadataRegistration.pfieldOffsets,
             //    PtrMetadataRegistration.fieldOffsetsCount);
 

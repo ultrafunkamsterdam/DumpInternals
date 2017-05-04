@@ -55,6 +55,9 @@ namespace Il2CppInspector
             var methodPointers = Image.ReadMappedArray<ulong>((long)ptrCodeReg.pmethodPointers, (int)ptrCodeReg.methodPointersCount);
             MethodPointers = methodPointers.Select(p => (long)p).ToArray();
 
+            var customAttributes = Image.ReadMappedArray<ulong>((long)ptrCodeReg.customAttributeGenerators, (int)ptrCodeReg.customAttributeCount);
+            CustomAttributes = customAttributes.Select(p => (long)p).ToArray();
+
             //ptrMetadataReg.fieldOffsets = Image.ReadMappedArray<long>((long)ptrMetadataReg.pfieldOffsets, (int)ptrMetadataReg.fieldOffsetsCount);
 
             var ptrs = Image.ReadMappedArray<ulong>((long)ptrMetadataReg.ptypes, (int)ptrMetadataReg.typesCount);
