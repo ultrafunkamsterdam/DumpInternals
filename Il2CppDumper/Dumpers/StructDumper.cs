@@ -93,8 +93,8 @@ namespace Il2CppDumper.Dumpers
         {
             writer.Write("struct Il2CppObject\n");
             writer.Write("{\n");
-            writer.Write("\tIl2CppClass *klass;\n");
-            writer.Write("\tMonitorData *monitor;\n");
+            writer.Write("\tvoid *klass; // Il2CppClass *\n");
+            writer.Write("\tvoid *monitor; // MonitorData *\n");
             writer.Write("}\n\n");
 
             writer.Write("struct Il2CppArray : public Il2CppObject\n");
