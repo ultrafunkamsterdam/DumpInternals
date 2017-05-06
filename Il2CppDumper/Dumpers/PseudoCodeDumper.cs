@@ -72,12 +72,29 @@ namespace Il2CppDumper.Dumpers
 
             WriteAttribute(writer, typeDef.customAttributeIndex, "\t");
 
+            var isStruct = false;
+            string parent = null;
+            if (typeDef.parentIndex >= 0)
+            {
+                var pType = il2cpp.Code.GetTypeFromTypeIndex(typeDef.parentIndex);
+                var name = il2cpp.GetTypeName(pType);
+                if (name == "ValueType")
+                {
+                    isStruct = true;
+                }
+                else if (name != "object")
+                {
+                    parent = name;
+                }
+            }
+
             writer.Write("\t");
             if ((typeDef.flags & DefineConstants.TYPE_ATTRIBUTE_VISIBILITY_MASK) == DefineConstants.TYPE_ATTRIBUTE_PUBLIC) writer.Write("public ");
             if ((typeDef.flags & DefineConstants.TYPE_ATTRIBUTE_ABSTRACT) != 0) writer.Write("abstract ");
-            if ((typeDef.flags & DefineConstants.TYPE_ATTRIBUTE_SEALED) != 0) writer.Write("sealed ");
+            if (!isStruct && (typeDef.flags & DefineConstants.TYPE_ATTRIBUTE_SEALED) != 0) writer.Write("sealed ");
 
             if ((typeDef.flags & DefineConstants.TYPE_ATTRIBUTE_INTERFACE) != 0) writer.Write("interface ");
+            else if (isStruct) writer.Write("struct ");
             else writer.Write("class ");
 
             var nameSpace = metadata.GetTypeNamespace(typeDef);
@@ -87,31 +104,10 @@ namespace Il2CppDumper.Dumpers
 
             var yes = typeDef.vtable_count == typeDef.method_count;
             yes.ToString();
-
-            // class implements an interface
-            //if (typeDef.interfaces_count > 0)
-            //{
-            //    var maxInterface = typeDef.interfacesStart + typeDef.interfaces_count;
-            //    for (var i = typeDef.interfacesStart; i < maxInterface; i++)
-            //    {
-            //        var pInterface = metadata.Interfaces[i];
-            //        //var pType = il2cpp.Code.GetTypeFromTypeIndex(pInterface.);
-            //        //var name = il2cpp.GetTypeName(pType);
-            //        var name = metadata.GetString(pInterface.nameIndex);
-            //        writer.Write($" implements {name}");
-            //    }
-            //}
+            
 
             // class extenss another type
-            if (typeDef.parentIndex >= 0)
-            {
-                var pType = il2cpp.Code.GetTypeFromTypeIndex(typeDef.parentIndex);
-                var name = il2cpp.GetTypeName(pType);
-                if (name != "object")
-                {
-                    writer.Write($" extends {name}");
-                }
-            }
+            if (parent != null) writer.Write($" : {parent}");
 
             writer.Write("\n\t{\n");
 
