@@ -28,6 +28,8 @@ namespace Il2CppInspector
         public string[] Strings { get; }
         public Dictionary<int, Il2CppTypeDefinition> Interfaces { get; }
         public uint[] EncodedMethods { get; }
+        public Il2CppCustomAttributeTypeRange[] AttributeInfos { get; }
+        public int[] AttributeTypes { get; }
 
         public string GetImageName(Il2CppImageDefinition image) => GetString(image.nameIndex);
         public string GetTypeNamespace(Il2CppTypeDefinition type) => GetString(type.namespaceIndex);
@@ -88,6 +90,10 @@ namespace Il2CppInspector
 
             // GetFieldDefaultFromIndex
             fieldDefaultValues = ReadArray<Il2CppFieldDefaultValue>(pMetadataHdr.fieldDefaultValuesOffset, pMetadataHdr.fieldDefaultValuesCount / MySizeOf(typeof(Il2CppFieldDefaultValue)));
+
+            // Attributes
+            AttributeInfos = ReadArray<Il2CppCustomAttributeTypeRange>(pMetadataHdr.attributesInfoOffset, pMetadataHdr.attributesInfoCount / MySizeOf(typeof(Il2CppCustomAttributeTypeRange)));
+            AttributeTypes = ReadArray<int>(pMetadataHdr.attributeTypesOffset, pMetadataHdr.attributeTypesCount / 4);
         }
 
         public Il2CppFieldDefaultValue GetFieldDefaultFromIndex(int idx)

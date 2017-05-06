@@ -69,12 +69,32 @@ namespace Il2CppDumper.Dumpers
         internal void WriteType(StreamWriter writer, Il2CppTypeDefinition typeDef)
         {
             if ((typeDef.flags & DefineConstants.TYPE_ATTRIBUTE_SERIALIZABLE) != 0) writer.Write("\t[Serializable]\n");
+
+            WriteAttribute(writer, typeDef.customAttributeIndex, "\t");
+
+            var isStruct = false;
+            string parent = null;
+            if (typeDef.parentIndex >= 0)
+            {
+                var pType = il2cpp.Code.GetTypeFromTypeIndex(typeDef.parentIndex);
+                var name = il2cpp.GetTypeName(pType);
+                if (name == "ValueType")
+                {
+                    isStruct = true;
+                }
+                else if (name != "object")
+                {
+                    parent = name;
+                }
+            }
+
             writer.Write("\t");
             if ((typeDef.flags & DefineConstants.TYPE_ATTRIBUTE_VISIBILITY_MASK) == DefineConstants.TYPE_ATTRIBUTE_PUBLIC) writer.Write("public ");
             if ((typeDef.flags & DefineConstants.TYPE_ATTRIBUTE_ABSTRACT) != 0) writer.Write("abstract ");
-            if ((typeDef.flags & DefineConstants.TYPE_ATTRIBUTE_SEALED) != 0) writer.Write("sealed ");
+            if (!isStruct && (typeDef.flags & DefineConstants.TYPE_ATTRIBUTE_SEALED) != 0) writer.Write("sealed ");
 
             if ((typeDef.flags & DefineConstants.TYPE_ATTRIBUTE_INTERFACE) != 0) writer.Write("interface ");
+            else if (isStruct) writer.Write("struct ");
             else writer.Write("class ");
 
             var nameSpace = metadata.GetTypeNamespace(typeDef);
@@ -84,31 +104,10 @@ namespace Il2CppDumper.Dumpers
 
             var yes = typeDef.vtable_count == typeDef.method_count;
             yes.ToString();
-
-            // class implements an interface
-            //if (typeDef.interfaces_count > 0)
-            //{
-            //    var maxInterface = typeDef.interfacesStart + typeDef.interfaces_count;
-            //    for (var i = typeDef.interfacesStart; i < maxInterface; i++)
-            //    {
-            //        var pInterface = metadata.Interfaces[i];
-            //        //var pType = il2cpp.Code.GetTypeFromTypeIndex(pInterface.);
-            //        //var name = il2cpp.GetTypeName(pType);
-            //        var name = metadata.GetString(pInterface.nameIndex);
-            //        writer.Write($" implements {name}");
-            //    }
-            //}
+            
 
             // class extenss another type
-            if (typeDef.parentIndex >= 0)
-            {
-                var pType = il2cpp.Code.GetTypeFromTypeIndex(typeDef.parentIndex);
-                var name = il2cpp.GetTypeName(pType);
-                if (name != "object")
-                {
-                    writer.Write($" extends {name}");
-                }
-            }
+            if (parent != null) writer.Write($" : {parent}");
 
             writer.Write("\n\t{\n");
 
@@ -129,7 +128,11 @@ namespace Il2CppDumper.Dumpers
                 var pField = metadata.Fields[i];
                 var pType = il2cpp.Code.GetTypeFromTypeIndex(pField.typeIndex);
                 var defaultValue = this.GetDefaultValue(i);
-            
+
+                WriteAttribute(writer, pField.customAttributeIndex, "\t\t");
+
+                if ((pType.attrs & DefineConstants.FIELD_ATTRIBUTE_PINVOKE_IMPL) != 0) writer.Write("// pinvoke\n");
+
                 writer.Write("\t\t");
                 if ((pType.attrs & DefineConstants.FIELD_ATTRIBUTE_PRIVATE) == DefineConstants.FIELD_ATTRIBUTE_PRIVATE) writer.Write("private ");
                 if ((pType.attrs & DefineConstants.FIELD_ATTRIBUTE_PUBLIC) == DefineConstants.FIELD_ATTRIBUTE_PUBLIC) writer.Write("public ");
@@ -151,7 +154,7 @@ namespace Il2CppDumper.Dumpers
             for (int i = typeDef.methodStart; i < methodEnd; ++i)
             {
                 var methodDef = metadata.Methods[i];
-
+                
                 if (methodDef.methodIndex >= 0)
                 {
                     var ptr = il2cpp.Code.MethodPointers[methodDef.methodIndex];
@@ -160,6 +163,12 @@ namespace Il2CppDumper.Dumpers
                 else
                 {
                     writer.Write("\t\t// Offset: ?\n");
+                }
+
+                WriteAttribute(writer, methodDef.customAttributeIndex, "\t\t");
+                if ((methodDef.flags & DefineConstants.METHOD_ATTRIBUTE_PINVOKE_IMPL) != 0)
+                {
+                    writer.Write("\t\t[DllImport()]\n");
                 }
 
                 writer.Write("\t\t");
@@ -174,6 +183,8 @@ namespace Il2CppDumper.Dumpers
                     writer.Write("virtual ");
                 if ((methodDef.flags & DefineConstants.METHOD_ATTRIBUTE_STATIC) != 0)
                     writer.Write("static ");
+                if ((methodDef.flags & DefineConstants.METHOD_ATTRIBUTE_PINVOKE_IMPL) != 0)
+                    writer.Write("extern ");
 
                 var methodName = metadata.GetString(methodDef.nameIndex);
                 writer.Write($"{il2cpp.GetFullTypeName(pReturnType)} {methodName}(");
@@ -197,6 +208,18 @@ namespace Il2CppDumper.Dumpers
                     }
                 }
                 writer.Write(");\n");
+            }
+        }
+
+        internal void WriteAttribute(StreamWriter writer, int attrIndex, string padding = "")
+        {
+            if (attrIndex < 0) return;
+
+            var attributeTypeRange = metadata.AttributeInfos[attrIndex];
+            for (var i = 0; i < attributeTypeRange.count; i++)
+            {
+                var typeIndex = metadata.AttributeTypes[attributeTypeRange.start + i];
+                writer.Write("{0}[{1}] // 0x{2:x}\n", padding, il2cpp.GetTypeName(il2cpp.Code.Types[typeIndex]), il2cpp.Code.CustomAttributes[attrIndex]);
             }
         }
     }

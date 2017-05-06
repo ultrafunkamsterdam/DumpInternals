@@ -184,5 +184,11 @@ namespace Il2CppInspector.Structures.v22
     {
         public int length;
         public int dataIndex;
-    };
+    }
+
+    public class Il2CppCustomAttributeTypeRange
+    {
+        public int start;
+        public int count;
+    }
 }
