@@ -7,7 +7,10 @@ namespace Il2CppDumper.Dumpers
 {
     public class PseudoCodeDumper : BaseDumper
     {
-        public PseudoCodeDumper(Il2CppProcessor proc) : base(proc) { }
+        public bool IncludeOffsets { get; set; }
+        public PseudoCodeDumper(Il2CppProcessor proc, bool includeOffsets = true) : base(proc) {
+            this.IncludeOffsets = includeOffsets;
+        }
 
         public void DumpStrings(string outFile)
         {
@@ -154,15 +157,18 @@ namespace Il2CppDumper.Dumpers
             for (int i = typeDef.methodStart; i < methodEnd; ++i)
             {
                 var methodDef = metadata.Methods[i];
-                
-                if (methodDef.methodIndex >= 0)
+
+                if (this.IncludeOffsets)
                 {
-                    var ptr = il2cpp.Code.MethodPointers[methodDef.methodIndex];
-                    writer.Write("\t\t// Offset: 0x{0:x}\n", ptr);
-                }
-                else
-                {
-                    writer.Write("\t\t// Offset: ?\n");
+                    if (methodDef.methodIndex >= 0)
+                    {
+                        var ptr = il2cpp.Code.MethodPointers[methodDef.methodIndex];
+                        writer.Write("\t\t// Offset: 0x{0:x}\n", ptr);
+                    }
+                    else
+                    {
+                        writer.Write("\t\t// Offset: ?\n");
+                    }
                 }
 
                 WriteAttribute(writer, methodDef.customAttributeIndex, "\t\t");
@@ -219,7 +225,12 @@ namespace Il2CppDumper.Dumpers
             for (var i = 0; i < attributeTypeRange.count; i++)
             {
                 var typeIndex = metadata.AttributeTypes[attributeTypeRange.start + i];
-                writer.Write("{0}[{1}] // 0x{2:x}\n", padding, il2cpp.GetTypeName(il2cpp.Code.Types[typeIndex]), il2cpp.Code.CustomAttributes[attrIndex]);
+                writer.Write("{0}[{1}]", padding, il2cpp.GetTypeName(il2cpp.Code.Types[typeIndex]));
+                if (this.IncludeOffsets)
+                {
+                    writer.Write(" // 0x{0:x}", il2cpp.Code.CustomAttributes[attrIndex]);
+                }
+                writer.Write("\n");
             }
         }
     }
