@@ -33,6 +33,9 @@ namespace Il2CppDumper.Dumpers
                 }
                 writer.Write("\n");
 
+                // TODO sort sub type
+                // var declaring = metadata.GetTypeName(metadata.Types[il2cpp.Code.GetTypeFromTypeIndex(typeDef.declaringTypeIndex).klassIndex]);
+                
                 var typesByNameSpace = metadata.Types.GroupBy(t => t.namespaceIndex).Select(t => t);
                 foreach (var nameSpaceIdx in typesByNameSpace)
                 {
@@ -87,7 +90,17 @@ namespace Il2CppDumper.Dumpers
                 }
                 else if (name != "object")
                 {
-                    parent = name;
+                    if (pType.type == Il2CppTypeEnum.IL2CPP_TYPE_CLASS)
+                    {
+                        var klass = metadata.Types[pType.klassIndex];
+                        var parentNameSpace = metadata.GetTypeNamespace(klass);
+                        if (parentNameSpace.Length > 0) parentNameSpace += ".";
+                        parent = parentNameSpace + name;
+                    }
+                    else
+                    {
+                        parent = name;
+                    }
                 }
             }
 
@@ -104,15 +117,18 @@ namespace Il2CppDumper.Dumpers
             if (nameSpace.Length > 0) nameSpace += ".";
 
             writer.Write($"{nameSpace}{metadata.GetTypeName(typeDef)}");
-
-            var yes = typeDef.vtable_count == typeDef.method_count;
-            yes.ToString();
             
-
-            // class extenss another type
+            // class extends another type
             if (parent != null) writer.Write($" : {parent}");
 
             writer.Write("\n\t{\n");
+
+            if (this.IncludeOffsets && typeDef.delegateWrapperFromManagedToNativeIndex >= 0)
+            {
+                var nativeIdx = typeDef.delegateWrapperFromManagedToNativeIndex;
+                var ptr = il2cpp.Code.ManagedToNative[nativeIdx];
+                writer.Write("\t\t// Native method : 0x{0:x}\n", ptr);
+            }
 
             this.WriteFields(writer, typeDef);
             this.WriteMethods(writer, typeDef);

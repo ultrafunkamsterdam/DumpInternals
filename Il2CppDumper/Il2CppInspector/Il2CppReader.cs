@@ -25,6 +25,8 @@ namespace Il2CppInspector
         public GenericIl2CppType[] Types { get; set; }
         public long[] MethodPointers { get; set; }
         public long[] CustomAttributes { get; set; }
+        public long[] ManagedToNative { get; set; }
+        public long[] Invokers { get; set; }
 
         // Architecture-specific search function
         protected abstract (long, long) Search(long loc, long globalOffset);
@@ -59,6 +61,12 @@ namespace Il2CppInspector
             var methodPointers = Image.ReadMappedArray<uint>(PtrCodeRegistration.pmethodPointers, (int) PtrCodeRegistration.methodPointersCount);
             MethodPointers = methodPointers.Select(p => (long)p).ToArray();
 
+            var invokers = Image.ReadMappedArray<uint>(PtrCodeRegistration.invokerPointers, (int)PtrCodeRegistration.invokerPointersCount);
+            Invokers = invokers.Select(p => (long)p).ToArray();
+
+            var managedToNative = Image.ReadMappedArray<uint>(PtrCodeRegistration.delegateWrappersFromManagedToNative, (int)PtrCodeRegistration.delegateWrappersFromManagedToNativeCount);
+            ManagedToNative = managedToNative.Select(p => (long)p).ToArray();
+            
             var customAttributes = Image.ReadMappedArray<uint>(PtrCodeRegistration.customAttributeGenerators, PtrCodeRegistration.customAttributeCount);
             CustomAttributes = customAttributes.Select(p => (long)p).ToArray();
             
@@ -76,13 +84,14 @@ namespace Il2CppInspector
                 var ptrs = Image.ReadMappedArray<uint>(PtrMetadataRegistration.ptypes, PtrMetadataRegistration.typesCount);
                 types = ptrs.Select(p => (long)p).ToArray();
             }
-
+            
             Types = new GenericIl2CppType[PtrMetadataRegistration.typesCount];
             for (int i = 0; i < PtrMetadataRegistration.typesCount; ++i) {
                 var pType = Image.ReadMappedObject<Il2CppType>(types[i]);
                 pType.Init();
                 Types[i] = new GenericIl2CppType(pType);
             }
+            
         }
 
         public GenericIl2CppType GetTypeFromTypeIndex(int idx) {

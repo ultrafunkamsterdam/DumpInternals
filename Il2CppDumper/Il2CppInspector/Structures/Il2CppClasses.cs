@@ -23,11 +23,6 @@ namespace Il2CppInspector.Structures
         public uint customAttributeGenerators;
         public int guidCount;
         public uint guids; // Il2CppGuid
-
-        public uint[] methodPointers
-        {
-            get; set;
-        }
     }
 
     public class Il2CppCodeRegistration64

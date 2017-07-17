@@ -26,6 +26,8 @@ namespace Il2CppInspector
             {
                 // fix method pointer in mach-o (always +1, don't know why)
                 MethodPointers = MethodPointers.Select(ptr => ptr - 1).ToArray();
+                ManagedToNative = ManagedToNative.Select(ptr => ptr - 1).ToArray();
+                Invokers = Invokers.Select(ptr => ptr - 1).ToArray();
             }
         }
 
