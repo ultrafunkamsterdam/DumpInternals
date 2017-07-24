@@ -89,6 +89,8 @@
     <Compile Include="Il2CppInspector\Structures\v23\MetadataClass.cs" />
     <Compile Include="Il2CppInspector\Readers\PEHeaders.cs" />
     <Compile Include="Il2CppInspector\Readers\PEReader.cs" />
+    <Compile Include="Il2CppInspector\Structures\v24\Il2CppClasses.cs" />
+    <Compile Include="Il2CppInspector\Structures\v24\MetadataClass.cs" />
     <Compile Include="Options.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -105,8 +107,6 @@
     </None>
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Il2CppInspector\Structures\v24\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

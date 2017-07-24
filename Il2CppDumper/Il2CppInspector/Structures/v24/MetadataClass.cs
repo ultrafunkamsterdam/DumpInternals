@@ -1,4 +1,4 @@
-﻿namespace Il2CppInspector.Structures.v23
+﻿namespace Il2CppInspector.Structures.v24
 {
 #pragma warning disable CS0649
     public class Il2CppGlobalMetadataHeader
@@ -57,7 +57,7 @@
         public int metadataUsagePairsCount;
         public int fieldRefsOffset; // Il2CppFieldRef
         public int fieldRefsCount;
-        public int referencedAssembliesOffset; // int
+        public int referencedAssembliesOffset; // public int 
         public int referencedAssembliesCount;
         public int attributesInfoOffset; // Il2CppCustomAttributeTypeRange
         public int attributesInfoCount;
@@ -69,6 +69,8 @@
         public int unresolvedVirtualCallParameterRangesCount;
         public int windowsRuntimeTypeNamesOffset; // Il2CppWindowsRuntimeTypeNamePair
         public int windowsRuntimeTypeNamesSize;
+        public int exportedTypeDefinitionsOffset; // TypeDefinitionIndex
+        public int exportedTypeDefinitionsCount;
     }
 
     public class Il2CppImageDefinition
@@ -78,6 +80,9 @@
 
         public int typeStart;
         public uint typeCount;
+
+        public int exportedTypeStart;
+        public uint exportedTypeCount;
 
         public int entryPointIndex;
         public uint token;
@@ -100,11 +105,6 @@
         public int rgctxCount;
 
         public int genericContainerIndex;
-
-        public int delegateWrapperFromManagedToNativeIndex;
-        public int marshalingFunctionsIndex;
-        public int ccwFunctionIndex;
-        public int guidIndex;
 
         public uint flags;
 
@@ -132,7 +132,7 @@
         // 03 - has_finalize;
         // 04 - has_cctor;
         // 05 - is_blittable;
-        // 06 - is_import;
+        // 06 - is_import_or_windows_runtime;
         // 07-10 - One of nine possible PackingSize values (0, 1, 2, 4, 8, 16, 32, 64, or 128)
         public uint bitfield;
         public uint token;
@@ -148,7 +148,7 @@
         public int genericContainerIndex;
         public int methodIndex;
         public int invokerIndex;
-        public int delegateWrapperIndex;
+        public int reversePInvokeWrapperIndex;
         public int rgctxStartIndex;
         public int rgctxCount;
         public uint token;

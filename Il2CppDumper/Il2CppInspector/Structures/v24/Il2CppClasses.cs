@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 
-namespace Il2CppInspector.Structures.v23
+namespace Il2CppInspector.Structures.v24
 {
     public class Il2CppCodeRegistration
     {
@@ -125,7 +125,6 @@ namespace Il2CppInspector.Structures.v23
         IL2CPP_TYPE_ENUM = 0x55        /* an enumeration */
     }
 
-
     public class GenericIl2CppType
     {
         public Il2CppTypeEnum type { get; set; }
@@ -192,7 +191,6 @@ namespace Il2CppInspector.Structures.v23
             public uint generic_class => dummy;
         }
     }
-
 
     public class Il2CppType64
     {
