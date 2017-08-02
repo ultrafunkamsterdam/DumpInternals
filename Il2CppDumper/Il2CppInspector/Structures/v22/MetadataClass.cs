@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace Il2CppInspector.Structures.v22
+﻿namespace Il2CppInspector.Structures.v22
 {
 #pragma warning disable CS0649
     public class Il2CppGlobalMetadataHeader
@@ -184,6 +179,12 @@ namespace Il2CppInspector.Structures.v22
     {
         public int length;
         public int dataIndex;
+    }
+
+    public class Il2CppInterfaceOffsetPair
+    {
+        public int interfaceTypeIndex;
+        public int offset;
     }
 
     public class Il2CppCustomAttributeTypeRange

@@ -16,7 +16,10 @@ namespace Il2CppDumper.Dumpers
         public override void DumpToFile(string outFile) {
             // Find the enum type index
             enumIdx = FindTypeIndex("Enum");
-            holoTypes = metadata.Types.Where(t => metadata.GetString(t.namespaceIndex).StartsWith("Holo" + "holo.Rpc")).Select(t => t);
+            holoTypes = metadata.Types.Where(t => {
+                var ns = metadata.GetString(t.namespaceIndex);
+                return ns.StartsWith("Holo" + "holo.Rpc") || ns.StartsWith("Nian" + "tic.Platform.Protos");
+            }).Select(t => t);
             if (holoTypes.Count() == 0) return;
 
             using (var writer = new StreamWriter(new FileStream(outFile, FileMode.Create))) {
@@ -47,8 +50,7 @@ namespace Il2CppDumper.Dumpers
         internal void WriteEnum(StreamWriter writer, Il2CppTypeDefinition typeDef, string pad = "")
         {
             writer.Write("\n");
-            writer.Write(pad + $"enum {metadata.GetTypeName(typeDef)}\n");
-            writer.Write(pad + "{\n");
+            writer.Write(pad + $"enum {metadata.GetTypeName(typeDef)} {{\n");
             var fieldEnd = typeDef.fieldStart + typeDef.field_count;
             for (int i = typeDef.fieldStart + 1; i < fieldEnd; ++i)
             {
@@ -64,8 +66,7 @@ namespace Il2CppDumper.Dumpers
             if ((typeDef.flags & DefineConstants.TYPE_ATTRIBUTE_ABSTRACT) != 0) return;
             var typesToDump = new List<GenericIl2CppType>();
             writer.Write("\n");
-            writer.Write(pad + $"message {metadata.GetTypeName(typeDef)}\n");
-            writer.Write(pad + "{\n");
+            writer.Write(pad + $"message {metadata.GetTypeName(typeDef)} {{\n");
 
             var methodsReturn = new Dictionary<string, GenericIl2CppType>();
             var methodEnd = typeDef.methodStart + typeDef.method_count;

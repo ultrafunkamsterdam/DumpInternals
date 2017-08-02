@@ -94,6 +94,9 @@ namespace Il2CppInspector
             // Attributes
             AttributeInfos = ReadArray<Il2CppCustomAttributeTypeRange>(pMetadataHdr.attributesInfoOffset, pMetadataHdr.attributesInfoCount / MySizeOf(typeof(Il2CppCustomAttributeTypeRange)));
             AttributeTypes = ReadArray<int>(pMetadataHdr.attributeTypesOffset, pMetadataHdr.attributeTypesCount / 4);
+
+            // Metadata Usage
+            
         }
 
         public Il2CppFieldDefaultValue GetFieldDefaultFromIndex(int idx)

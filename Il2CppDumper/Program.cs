@@ -40,20 +40,24 @@ namespace Il2CppDumper
                 {
                     logger.Info("Writing pseudo code...");
                     var dumper = new PseudoCodeDumper(il2cpp);
-                    dumper.DumpStrings("strings.txt");
-                    dumper.DumpToFile("pseudo.cs");
+                    dumper.DumpStrings((options.OutputName ?? "generated") + ".strings.txt");
+                    dumper.DumpToFile((options.OutputName ?? "pseudo") + ".cs");
+
+                    logger.Info("Writing clean pseudo code...");
+                    dumper.IncludeOffsets = false;
+                    dumper.DumpToFile((options.OutputName ?? "strings") + ".clean.cs");
 
                     logger.Info("Writing structs...");
                     var structOffsets = new StructDumper(il2cpp);
-                    structOffsets.DumpToFile("structs.h");
+                    structOffsets.DumpToFile((options.OutputName ?? "generated") + ".structs.h");
 
                     logger.Info("Writing methods offsets...");
                     var methodsOffsets = new MethodsOffsetsDumper(il2cpp);
-                    methodsOffsets.DumpToFile("methods.txt");
+                    methodsOffsets.DumpToFile((options.OutputName ?? "generated") + ".methods.txt");
 
                     logger.Info("Writing extracted protos...");
                     var protoDumper = new ProtoDumper(il2cpp);
-                    protoDumper.DumpToFile("generated.proto");
+                    protoDumper.DumpToFile((options.OutputName ?? "generated") + ".proto");
                 }
             }
             logger.Info("Done.");

@@ -7,7 +7,10 @@ namespace Il2CppDumper.Dumpers
 {
     public class PseudoCodeDumper : BaseDumper
     {
-        public PseudoCodeDumper(Il2CppProcessor proc) : base(proc) { }
+        public bool IncludeOffsets { get; set; }
+        public PseudoCodeDumper(Il2CppProcessor proc, bool includeOffsets = true) : base(proc) {
+            this.IncludeOffsets = includeOffsets;
+        }
 
         public void DumpStrings(string outFile)
         {
@@ -30,6 +33,9 @@ namespace Il2CppDumper.Dumpers
                 }
                 writer.Write("\n");
 
+                // TODO sort sub type
+                // var declaring = metadata.GetTypeName(metadata.Types[il2cpp.Code.GetTypeFromTypeIndex(typeDef.declaringTypeIndex).klassIndex]);
+                
                 var typesByNameSpace = metadata.Types.GroupBy(t => t.namespaceIndex).Select(t => t);
                 foreach (var nameSpaceIdx in typesByNameSpace)
                 {
@@ -84,7 +90,17 @@ namespace Il2CppDumper.Dumpers
                 }
                 else if (name != "object")
                 {
-                    parent = name;
+                    if (pType.type == Il2CppTypeEnum.IL2CPP_TYPE_CLASS)
+                    {
+                        var klass = metadata.Types[pType.klassIndex];
+                        var parentNameSpace = metadata.GetTypeNamespace(klass);
+                        if (parentNameSpace.Length > 0) parentNameSpace += ".";
+                        parent = parentNameSpace + name;
+                    }
+                    else
+                    {
+                        parent = name;
+                    }
                 }
             }
 
@@ -101,15 +117,18 @@ namespace Il2CppDumper.Dumpers
             if (nameSpace.Length > 0) nameSpace += ".";
 
             writer.Write($"{nameSpace}{metadata.GetTypeName(typeDef)}");
-
-            var yes = typeDef.vtable_count == typeDef.method_count;
-            yes.ToString();
             
-
-            // class extenss another type
+            // class extends another type
             if (parent != null) writer.Write($" : {parent}");
 
             writer.Write("\n\t{\n");
+
+            if (this.IncludeOffsets && typeDef.delegateWrapperFromManagedToNativeIndex >= 0)
+            {
+                var nativeIdx = typeDef.delegateWrapperFromManagedToNativeIndex;
+                var ptr = il2cpp.Code.ManagedToNative[nativeIdx];
+                writer.Write("\t\t// Native method : 0x{0:x}\n", ptr);
+            }
 
             this.WriteFields(writer, typeDef);
             this.WriteMethods(writer, typeDef);
@@ -154,15 +173,18 @@ namespace Il2CppDumper.Dumpers
             for (int i = typeDef.methodStart; i < methodEnd; ++i)
             {
                 var methodDef = metadata.Methods[i];
-                
-                if (methodDef.methodIndex >= 0)
+
+                if (this.IncludeOffsets)
                 {
-                    var ptr = il2cpp.Code.MethodPointers[methodDef.methodIndex];
-                    writer.Write("\t\t// Offset: 0x{0:x}\n", ptr);
-                }
-                else
-                {
-                    writer.Write("\t\t// Offset: ?\n");
+                    if (methodDef.methodIndex >= 0)
+                    {
+                        var ptr = il2cpp.Code.MethodPointers[methodDef.methodIndex];
+                        writer.Write("\t\t// Offset: 0x{0:x}\n", ptr);
+                    }
+                    else
+                    {
+                        writer.Write("\t\t// Offset: ?\n");
+                    }
                 }
 
                 WriteAttribute(writer, methodDef.customAttributeIndex, "\t\t");
@@ -219,7 +241,12 @@ namespace Il2CppDumper.Dumpers
             for (var i = 0; i < attributeTypeRange.count; i++)
             {
                 var typeIndex = metadata.AttributeTypes[attributeTypeRange.start + i];
-                writer.Write("{0}[{1}] // 0x{2:x}\n", padding, il2cpp.GetTypeName(il2cpp.Code.Types[typeIndex]), il2cpp.Code.CustomAttributes[attrIndex]);
+                writer.Write("{0}[{1}]", padding, il2cpp.GetTypeName(il2cpp.Code.Types[typeIndex]));
+                if (this.IncludeOffsets)
+                {
+                    writer.Write(" // 0x{0:x}", il2cpp.Code.CustomAttributes[attrIndex]);
+                }
+                writer.Write("\n");
             }
         }
     }

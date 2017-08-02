@@ -55,6 +55,12 @@ namespace Il2CppInspector
             var methodPointers = Image.ReadMappedArray<ulong>((long)ptrCodeReg.pmethodPointers, (int)ptrCodeReg.methodPointersCount);
             MethodPointers = methodPointers.Select(p => (long)p).ToArray();
 
+            var managedToNative = Image.ReadMappedArray<ulong>((long)ptrCodeReg.delegateWrappersFromManagedToNative, (int)ptrCodeReg.delegateWrappersFromManagedToNativeCount);
+            ManagedToNative = managedToNative.Select(p => (long)p).ToArray();
+
+            var invokers = Image.ReadMappedArray<ulong>((long)ptrCodeReg.invokerPointers, (int)ptrCodeReg.invokerPointersCount);
+            Invokers = invokers.Select(p => (long)p).ToArray();
+
             var customAttributes = Image.ReadMappedArray<ulong>((long)ptrCodeReg.customAttributeGenerators, (int)ptrCodeReg.customAttributeCount);
             CustomAttributes = customAttributes.Select(p => (long)p).ToArray();
 
