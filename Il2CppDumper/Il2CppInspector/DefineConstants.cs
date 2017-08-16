@@ -12,6 +12,7 @@
     public const int METHOD_ATTRIBUTE_VIRTUAL = 0x0040;
     public const int METHOD_ATTRIBUTE_PINVOKE_IMPL = 0x2000;
     public const int TYPE_ATTRIBUTE_VISIBILITY_MASK = 0x00000007;
+    public const int TYPE_ATTRIBUTE_NOT_PUBLIC = 0x00000000;
     public const int TYPE_ATTRIBUTE_PUBLIC = 0x00000001;
     public const int TYPE_ATTRIBUTE_INTERFACE = 0x00000020;
     public const int TYPE_ATTRIBUTE_ABSTRACT = 0x00000080;

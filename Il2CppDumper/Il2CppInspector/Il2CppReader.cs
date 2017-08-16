@@ -69,7 +69,7 @@ namespace Il2CppInspector
             
             var customAttributes = Image.ReadMappedArray<uint>(PtrCodeRegistration.customAttributeGenerators, PtrCodeRegistration.customAttributeCount);
             CustomAttributes = customAttributes.Select(p => (long)p).ToArray();
-            
+
             //PtrMetadataRegistration.fieldOffsets = Image.ReadMappedArray<int>(PtrMetadataRegistration.pfieldOffsets,
             //    PtrMetadataRegistration.fieldOffsetsCount);
 

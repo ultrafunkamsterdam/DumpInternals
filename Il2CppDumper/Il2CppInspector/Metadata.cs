@@ -26,10 +26,10 @@ namespace Il2CppInspector
         public Il2CppFieldDefinition[] Fields { get; }
         public Il2CppFieldDefaultValue[] fieldDefaultValues;
         public string[] Strings { get; }
-        public Dictionary<int, Il2CppTypeDefinition> Interfaces { get; }
         public uint[] EncodedMethods { get; }
         public Il2CppCustomAttributeTypeRange[] AttributeInfos { get; }
         public int[] AttributeTypes { get; }
+        public int[] InterfaceIndices { get; }
 
         public string GetImageName(Il2CppImageDefinition image) => GetString(image.nameIndex);
         public string GetTypeNamespace(Il2CppTypeDefinition type) => GetString(type.namespaceIndex);
@@ -62,15 +62,7 @@ namespace Il2CppInspector
             Images = ReadArray<Il2CppImageDefinition>(pMetadataHdr.imagesOffset, uiImageCount);
 
             // Interfaces
-            Interfaces = new Dictionary<int, Il2CppTypeDefinition>();
-            //var uiInterfacePairCount = pMetadataHdr.interfaceOffsetsCount / MySizeOf(typeof(Il2CppInterfaceOffsetPair));
-            //var interfacePairs = ReadArray<Il2CppInterfaceOffsetPair>(pMetadataHdr.interfaceOffsetsOffset, uiInterfacePairCount);
-            //var uiInterfaceCount = pMetadataHdr.interfacesCount / MySizeOf(typeof(Il2CppTypeDefinition));
-            //var interfaceDefs = ReadArray<Il2CppTypeDefinition>(pMetadataHdr.interfacesOffset, uiInterfaceCount);
-            //for (var i = 0; i < interfacePairs.Count(); i++)
-            //{
-            //    Interfaces[i] = interfaceDefs[interfacePairs[i].interfaceTypeIndex];
-            //}
+            InterfaceIndices = ReadArray<int>(pMetadataHdr.interfacesOffset, pMetadataHdr.interfacesCount / 4);
 
             // EncodedMethods
             //EncodedMethods = ReadArray<uint>(pMetadataHdr.vtableMethodsOffset, pMetadataHdr.vtableMethodsCount);

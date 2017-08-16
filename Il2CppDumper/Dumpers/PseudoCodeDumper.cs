@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using Il2CppInspector.Structures;
+using System.Collections.Generic;
 
 namespace Il2CppDumper.Dumpers
 {
@@ -106,6 +107,7 @@ namespace Il2CppDumper.Dumpers
 
             writer.Write("\t");
             if ((typeDef.flags & DefineConstants.TYPE_ATTRIBUTE_VISIBILITY_MASK) == DefineConstants.TYPE_ATTRIBUTE_PUBLIC) writer.Write("public ");
+            else if ((typeDef.flags & DefineConstants.TYPE_ATTRIBUTE_VISIBILITY_MASK) == DefineConstants.TYPE_ATTRIBUTE_NOT_PUBLIC) writer.Write("internal ");
             if ((typeDef.flags & DefineConstants.TYPE_ATTRIBUTE_ABSTRACT) != 0) writer.Write("abstract ");
             if (!isStruct && (typeDef.flags & DefineConstants.TYPE_ATTRIBUTE_SEALED) != 0) writer.Write("sealed ");
 
@@ -117,9 +119,20 @@ namespace Il2CppDumper.Dumpers
             if (nameSpace.Length > 0) nameSpace += ".";
 
             writer.Write($"{nameSpace}{metadata.GetTypeName(typeDef)}");
-            
-            // class extends another type
-            if (parent != null) writer.Write($" : {parent}");
+
+            // class extends another type or interface
+            var extends = new List<string>();
+            if (parent != null) extends.Add(parent);
+            if (typeDef.interfaces_count > 0)
+            {
+                for (var i = 0; i < typeDef.interfaces_count; i++)
+                {
+                    var intTypeIdx = metadata.InterfaceIndices[typeDef.interfacesStart + i];
+                    var pType = il2cpp.Code.GetTypeFromTypeIndex(intTypeIdx);
+                    extends.Add(il2cpp.GetTypeName(pType));
+                }
+            }
+            if (extends.Count > 0) writer.Write($" : {string.Join(", ", extends)}");
 
             writer.Write("\n\t{\n");
 
