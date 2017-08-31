@@ -8,7 +8,7 @@ namespace Il2CppDumper.Dumpers
 {
     public class ProtoDumper : BaseDumper
     {
-        private IEnumerable<Il2CppTypeDefinition> holoTypes;
+        private List<Il2CppTypeDefinition> protoTypes;
         private int enumIdx = -1;
 
         public ProtoDumper(Il2CppProcessor proc) : base(proc) { }
@@ -16,16 +16,46 @@ namespace Il2CppDumper.Dumpers
         public override void DumpToFile(string outFile) {
             // Find the enum type index
             enumIdx = FindTypeIndex("Enum");
-            holoTypes = metadata.Types.Where(t => {
+
+            protoTypes = metadata.Types.Where(t => {
                 var ns = metadata.GetString(t.namespaceIndex);
-                return ns.StartsWith("Holo" + "holo.Rpc") || ns.StartsWith("Nian" + "tic.Platform.Protos");
-            }).Select(t => t);
-            if (holoTypes.Count() == 0) return;
+                return t.parentIndex == enumIdx && ns.StartsWith("Holo" + "holo.Rpc");
+            }).Select(t => t).ToList();
+
+            protoTypes.AddRange(metadata.Types.Where(t => {
+                // skip system types
+                var ns = metadata.GetString(t.namespaceIndex);
+                if (ns.StartsWith("System.") || ns.StartsWith("Mono.") || ns.StartsWith("Assembly-CSharp")) return false;
+                // only takes type that implement IMessage
+                if (t.parentIndex < 0) return false;
+                var pParent = il2cpp.Code.GetTypeFromTypeIndex(t.parentIndex);
+                var parent = il2cpp.GetTypeName(pParent);
+                var realType = parent != "ValueType";
+                if (t.interfaces_count > 0)
+                {
+                    for (var i = 0; i < t.interfaces_count; i++)
+                    {
+                        var intTypeIdx = metadata.InterfaceIndices[t.interfacesStart + i];
+                        var pType = il2cpp.Code.GetTypeFromTypeIndex(intTypeIdx);
+                        if (il2cpp.GetTypeName(pType) == "IMessage")
+                        {
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+                else
+                {
+                    return false;
+                }
+            }).Select(t => t));
+
+            if (protoTypes.Count() == 0) return;
 
             using (var writer = new StreamWriter(new FileStream(outFile, FileMode.Create))) {
                 this.WriteHeaders(writer);
 
-                var enums = holoTypes.Where(t => t.parentIndex == enumIdx);
+                var enums = protoTypes.Where(t => t.parentIndex == enumIdx);
                 foreach (var enumObject in enums)
                 {
                     this.WriteEnum(writer, enumObject);
@@ -33,7 +63,7 @@ namespace Il2CppDumper.Dumpers
 
                 writer.Write("\n");
                 
-                var messages = holoTypes.Where(t => t.parentIndex != enumIdx);
+                var messages = protoTypes.Where(t => t.parentIndex != enumIdx);
                 foreach (var typeDef in messages)
                 {
                     this.WriteType(writer, typeDef);
@@ -113,7 +143,7 @@ namespace Il2CppDumper.Dumpers
                 var subtypeDef = metadata.Types[realType.klassIndex];
                 if (realType.type == Il2CppTypeEnum.IL2CPP_TYPE_VALUETYPE || realType.type == Il2CppTypeEnum.IL2CPP_TYPE_CLASS)
                 {
-                    if (!holoTypes.Any(t => t.nameIndex == subtypeDef.nameIndex))
+                    if (!protoTypes.Any(t => t.nameIndex == subtypeDef.nameIndex))
                     {
                         if (subtypeDef.parentIndex == enumIdx)
                         {
@@ -165,8 +195,8 @@ namespace Il2CppDumper.Dumpers
 
             // depending on field name, adjust type
 
-            string[] uint64names = { "timeStamp", "timeStamp", "page_timestamp", "game_master_timestamp", "asset_digest_timestamp", "cell_id", "s2_cell_id" };
-            if (typeName == "fixed64" && uint64names.Contains(fieldName)) 
+            string[] uint64names = { "cell_id", "s2_cell_id" };
+            if (typeName == "fixed64" && (uint64names.Contains(fieldName) || fieldName.ToLower().Contains("timestamp") || fieldName.ToLower().EndsWith("_ms")))
             {
                 typeName = "uint64";
             }
