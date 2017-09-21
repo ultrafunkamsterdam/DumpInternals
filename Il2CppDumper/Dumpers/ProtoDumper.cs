@@ -17,8 +17,9 @@ namespace Il2CppDumper.Dumpers
             // Find the enum type index
             enumIdx = FindTypeIndex("Enum");
             holoTypes = metadata.Types.Where(t => {
+                var name = metadata.GetString(t.nameIndex);
                 var ns = metadata.GetString(t.namespaceIndex);
-                return ns.StartsWith("Holo" + "holo.Rpc") || ns.StartsWith("Nian" + "tic.Platform.Protos");
+                return name.EndsWith("Protos") || ns.StartsWith("Holo" + "holo.Rpc") || ns.StartsWith("Nian" + "tic.Platform.Protos");
             }).Select(t => t);
             if (holoTypes.Count() == 0) return;
 
